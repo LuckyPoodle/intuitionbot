@@ -1,5 +1,5 @@
 
-const constants = require('./constants');
+const constants = require('../utils/constants');
 
 function generateRandomAnimal() {
     const randomIndex = Math.floor(Math.random() * constants.ANIMALS.length);
