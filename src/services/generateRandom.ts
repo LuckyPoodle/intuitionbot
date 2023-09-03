@@ -12,4 +12,4 @@ function generateRandomColor() {
 }
 
 
-module.exports = { generateRandomAnimal , generateRandomColor };
+export { generateRandomAnimal , generateRandomColor };

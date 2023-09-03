@@ -1,21 +1,23 @@
-const { getQuote } = require('./getQuotes');
+import { getQuote } from './getQuotes';
+import prisma from "./../utils/db";
 const constants = require('../utils/constants');
 const {
     generateRandomAnimal,
     generateRandomColor
 } = require('./generateRandom');
 
-function shuffleArray(array) {
+function shuffleArray(array: any[]) {
     for (let i = array.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
-        return array;
+
     }
+    return array;
 
 
 }
 
-async function inspireMe(bot, msg) {
+async function inspireMe(bot: any, msg: any) {
     let reply = await getQuote();
 
     bot.sendMessage(msg.chat.id, `<b>${reply}</b>`, { parse_mode: 'HTML' });
@@ -27,7 +29,7 @@ async function inspireMe(bot, msg) {
 }
 
 
-function guessColor(bot, msg) {
+function guessColor(bot: any, msg: any) {
     let arrayColors = shuffleArray(constants.COLORS);
     const keyboardOptions = {
         reply_markup: JSON.stringify({
@@ -49,7 +51,7 @@ function guessColor(bot, msg) {
 }
 
 
-function guessAnimal(bot, msg) {
+function guessAnimal(bot: any, msg: any) {
     try {
         let array = shuffleArray(constants.ANIMALS);
         const keyboardOptions = {
@@ -85,6 +87,84 @@ function guessAnimal(bot, msg) {
         );
     } catch (e) {
         console.log(e);
+        bot.send.msg(
+            msg.chat.id,
+            'Sorry the bot is not feeling well'
+        );
+    }
+}
+
+
+async function saveMessage(bot: any, msg: any, match: any) {
+
+
+    try {
+
+
+
+        await prisma.intuitionBotMsgForTmr.deleteMany({
+            where: {
+                userId: msg.chat.id
+            }
+        })
+
+
+        await prisma.intuitionBotMsgForTmr.create({
+            data: {
+                userId: msg.chat.id,
+                msg: match[1]
+            }
+        })
+
+        bot.sendMessage(
+            msg.chat.id,
+            'Okay, you will receive this message at the next 8 AM'
+        );
+
+    } catch (e) {
+        console.log(e);
+        bot.sendMessage(
+            msg.chat.id,
+            'Sorry the bot is not feeling well'
+        );
+    }
+
+
+}
+
+
+
+
+function saveTimeZone(bot: any, msg: any) {
+    try {
+        let inline_keyboard = constants.UTCOFFSETS.reduce((resultArray, time, index) => {
+            const chunkIndex = Math.floor(index / 3);
+
+            if (!resultArray[chunkIndex]) {
+                resultArray[chunkIndex] = []; // start a new chunk
+            }
+
+            resultArray[chunkIndex].push({
+                text: `${time}`,
+                callback_data: `sTz${time}`
+            });
+
+            return resultArray;
+        }, []);
+
+
+        const keyboardOptions = {
+            reply_markup: JSON.stringify({
+                inline_keyboard: inline_keyboard
+            })
+        };
+        bot.sendMessage(
+            msg.chat.id,
+            'Select your timezone (UTC)',
+            keyboardOptions
+        );
+    } catch (e) {
+        console.log(e);
         bot.sendMessage(
             msg.chat.id,
             'Sorry the bot is not feeling well'
@@ -93,16 +173,36 @@ function guessAnimal(bot, msg) {
 }
 
 
-
-
-
-
-function handleCallBack(bot, callbackQuery) {
-
+async function saveUser(msg: any) {
     try {
-        const message = callbackQuery.message;
-        const data = callbackQuery.data;
-        let response;
+        await prisma.intuitionBotUser.create({
+            data: {
+                id: msg.chat.id,
+                username: msg.chat.username
+            }
+        })
+
+    } catch (e) {
+        console.log(e);
+    }
+
+}
+
+
+
+
+async function handleCallBack(bot: any, callbackQuery: any) {
+
+
+    if (!callbackQuery) {
+        console.log('CallbackQuery is null or undefined');
+        return;
+    }
+    const msg = callbackQuery.message;
+    const data = callbackQuery.data;
+    let response;
+    try {
+
         if (data.startsWith('gA+')) {
             let chosenAnimal = generateRandomAnimal();
             if (data === 'gA+' + chosenAnimal) {
@@ -123,16 +223,47 @@ function handleCallBack(bot, callbackQuery) {
             }
         }
 
-        bot.sendMessage(message.chat.id, response);
+
+        if (data.startsWith('sTz')) {
+            let userTimezone = parseInt(data.slice(3));
+
+            const user = await prisma.intuitionBotUser.findFirst({
+                where: {
+                    id: msg.chat.id
+                }
+            })
+
+            if (user) {
+                const updated = await prisma.intuitionBotUser.update({
+                    where: {
+                        id: msg.chat.id,
+                    },
+                    data: {
+                        timezone: userTimezone
+                    }
+                })
+
+                console.log(updated);
+                response = "Okay, your timezone is updated"
+
+
+            } else {
+                saveUser(msg);
+                response = "Please try again"
+            }
+
+        }
+
+
     } catch (e) {
-        const message = callbackQuery.message;
         console.log(e);
-        let response = 'Sorry bot is asleep';
-        bot.sendMessage(message.chat.id, response);
+        response = 'Sorry, the bot is not feeling well!';
 
     }
+
+    bot.sendMessage(msg.chat.id, response);
 
 }
 
 
-module.exports = { inspireMe, guessColor, guessAnimal, handleCallBack };
+export { inspireMe, guessColor, guessAnimal, saveTimeZone, saveUser, saveMessage, handleCallBack };

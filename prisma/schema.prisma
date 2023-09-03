@@ -1,0 +1,25 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model IntuitionBotUser {
+  id                    Int                     @id
+  username              String                  @unique
+  timezone              Int                     @default(8)
+  IntuitionBotMsgForTmr IntuitionBotMsgForTmr[]
+}
+
+model IntuitionBotMsgForTmr {
+  msgId       String           @id @default(uuid())
+  userId      Int              
+  msg         String
+  belongsToId IntuitionBotUser @relation(fields: [userId], references: [id])
+}
