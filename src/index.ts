@@ -1,13 +1,26 @@
 'use strict';
 const TelegramBot = require('node-telegram-bot-api');
 import { inspireMe, guessColor, handleCallBack, guessAnimal, saveTimeZone, saveUser, saveMessage } from './services/botFunctions';
-import schedule  from 'node-schedule';
+import schedule from 'node-schedule';
 import { sendReminderMsgToUser } from './services/sendReminder';
 
 // const TelegramBot = require('node-telegram-bot-api');
 require('dotenv').config();
 // const { inspireMe, guessColor, handleCallBack, guessAnimal } = require('./services/botFunctions');
 const token = process.env.API_KEY;
+
+const express = require('express');
+const app = express();
+
+app.get('/', (_, res) => {
+  res.send('Bot is running');
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server is up on port ${port}`);
+});
+
 
 
 
@@ -31,14 +44,14 @@ bot.onText(/\/save_timezone/, (msg: any) => {
 
 bot.onText(/\/save_message (.+)/, (msg: any, match: any) => {
 
-    saveMessage(bot, msg, match)
-  
+  saveMessage(bot, msg, match)
+
 })
 
 bot.onText(/\/save_message$/, (msg: any) => {
 
   bot.sendMessage(msg.chat.id, 'You need to use a valid prompt after the /save_message command.\n Example: /save_message Meditate before breakfast')
-  
+
 })
 
 
