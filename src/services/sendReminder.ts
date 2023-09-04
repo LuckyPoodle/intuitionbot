@@ -3,6 +3,8 @@ import prisma from "./../utils/db";
 
 async function sendReminderMsgToUser(bot: any) {
 
+    console.log("Running User Reminder Hourly Check");
+
     try {
         const intuitUsers = await prisma.intuitionBotUser.findMany();
         for (let user of intuitUsers) {
