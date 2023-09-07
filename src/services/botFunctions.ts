@@ -95,6 +95,32 @@ function guessAnimal(bot: any, msg: any) {
 }
 
 
+async function deleteMessage(bot:any,msg:any) {
+    try {
+        const deleteCount = await prisma.intuitionBotMsgForTmr.deleteMany({
+            where: {
+                userId: msg.chat.id
+            }
+        })
+
+        if (deleteCount.count>0) {
+            bot.sendMessage(
+                msg.chat.id,
+                'Okay, your message is deleted'
+            );
+        }else{
+            bot.sendMessage(
+                msg.chat.id,
+                'You have not saved any message to be deleted'
+            );
+        }
+    }catch (e) {
+        console.log(e)
+
+    }
+}
+
+
 async function saveMessage(bot: any, msg: any, match: any) {
 
 
@@ -265,4 +291,4 @@ async function handleCallBack(bot: any, callbackQuery: any) {
 }
 
 
-export { inspireMe, guessColor, guessAnimal, saveTimeZone, saveUser, saveMessage, handleCallBack };
+export { inspireMe, guessColor, guessAnimal, deleteMessage, saveTimeZone, saveUser, saveMessage, handleCallBack };
