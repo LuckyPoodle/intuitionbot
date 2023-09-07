@@ -19,14 +19,20 @@ async function sendReminderMsgToUser(bot: any) {
                     }
                 })
 
-                bot.sendMessage(user.id, message.msg)
+
+                if (message && message.msg && message.msg.trim() !== "") {
+                    bot.sendMessage(user.id, message.msg)
+                } else {
+                    console.log(`${user.id} has no message`);
+                    continue
+                }
 
             }
 
         }
-    }catch(e) {
+    } catch (e) {
         console.log(e);
-        
+
     }
 
 }

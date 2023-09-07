@@ -1,6 +1,6 @@
 'use strict';
 const TelegramBot = require('node-telegram-bot-api');
-import { inspireMe, guessColor, handleCallBack, guessAnimal, saveTimeZone, saveUser, saveMessage } from './services/botFunctions';
+import { inspireMe, guessColor, handleCallBack, guessAnimal, saveTimeZone, saveUser, saveMessage, deleteMessage } from './services/botFunctions';
 import schedule from 'node-schedule';
 import { sendReminderMsgToUser } from './services/sendReminder';
 
@@ -26,8 +26,8 @@ app.listen(port, () => {
 
 const bot = new TelegramBot(token as string, { polling: true });
 //schedule.scheduleJob('*/5 * * * *', () => sendReminderMsgToUser(bot)); to run every 5 min. * * * * * to run every 1 min
-schedule.scheduleJob('0 * * * *', () => sendReminderMsgToUser(bot));
-
+//schedule.scheduleJob('0 * * * *', () => sendReminderMsgToUser(bot));
+schedule.scheduleJob('* * * * *', () => sendReminderMsgToUser(bot));
 
 bot.onText(/\/guess_animal/, (msg: any) => {
   guessAnimal(bot, msg)
@@ -43,15 +43,15 @@ bot.onText(/\/save_timezone/, (msg: any) => {
 
 
 bot.onText(/\/save_message (.+)/, (msg: any, match: any) => {
-
   saveMessage(bot, msg, match)
-
 })
 
+bot.onText(/\/delete_message/, async (msg: any) => {
+  deleteMessage(bot, msg);
+});
+
 bot.onText(/\/save_message$/, (msg: any) => {
-
   bot.sendMessage(msg.chat.id, 'You need to use a valid prompt after the /save_message command.\n Example: /save_message Meditate before breakfast')
-
 })
 
 
@@ -62,6 +62,7 @@ bot.on('callback_query', (callbackQuery: any) => {
 bot.onText(/\/inspire_me/, async (msg: any) => {
   inspireMe(bot, msg);
 });
+
 
 
 bot.onText(/\/start/, async (msg: any) => {
