@@ -26,8 +26,7 @@ app.listen(port, () => {
 
 const bot = new TelegramBot(token as string, { polling: true });
 //schedule.scheduleJob('*/5 * * * *', () => sendReminderMsgToUser(bot)); to run every 5 min. * * * * * to run every 1 min
-//schedule.scheduleJob('0 * * * *', () => sendReminderMsgToUser(bot));
-schedule.scheduleJob('* * * * *', () => sendReminderMsgToUser(bot));
+schedule.scheduleJob('0 * * * *', () => sendReminderMsgToUser(bot));
 
 bot.onText(/\/guess_animal/, (msg: any) => {
   guessAnimal(bot, msg)
